@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -46,6 +47,8 @@ namespace WawsObserverWPF
 
             // Navigate to the WawsObserver site
             WebBrowser.Navigate("https://wawsobserver.azurewebsites.windows.net/");
+
+            WebBrowser.Navigated += ViewerWebBrowserControlView_Navigated;
 
             // Attain the Authentication Cookie Name and Value
             // Cookie Name: AppServiceAuthSession
@@ -131,10 +134,67 @@ namespace WawsObserverWPF
         // URL to get the AppServiceAuthSession Cookie Value
         private void WebBrowser_LoadCompleted(object sender, NavigationEventArgs e)
         {
+            var browser = sender as WebBrowser;
+
+            if (browser == null || browser.Document == null)
+                return;
+
+            dynamic document = browser.Document;
+
+            if (document.readyState != "complete")
+                return;
+
+            dynamic script = document.createElement("script");
+            script.type = @"text/javascript";
+            script.text = @"window.onerror = function(msg,url,line){return true;}";
+            document.head.appendChild(script);
+
             // Get the Authentication Cookie Value for later use
             string authCookie = GetUriCookieContainer(
                 new Uri("https://wawsobserver.azurewebsites.windows.net/")
                 );
+        }
+
+        void ViewerWebBrowserControlView_Navigated(object sender, NavigationEventArgs e)
+        {
+            BrowserHandler.SetSilent(WebBrowser, true); // make it silent
+        }
+
+        public static class BrowserHandler
+        {
+            private const string IWebBrowserAppGUID = "0002DF05-0000-0000-C000-000000000046";
+            private const string IWebBrowser2GUID = "D30C1661-CDAF-11d0-8A3E-00C04FC9E26E";
+
+            public static void SetSilent(System.Windows.Controls.WebBrowser browser, bool silent)
+            {
+                if (browser == null)
+                    MessageBox.Show("No Internet Connection");
+
+                // get an IWebBrowser2 from the document
+                IOleServiceProvider sp = browser.Document as IOleServiceProvider;
+                if (sp != null)
+                {
+                    Guid IID_IWebBrowserApp = new Guid(IWebBrowserAppGUID);
+                    Guid IID_IWebBrowser2 = new Guid(IWebBrowser2GUID);
+
+                    object webBrowser;
+                    sp.QueryService(ref IID_IWebBrowserApp, ref IID_IWebBrowser2, out webBrowser);
+                    if (webBrowser != null)
+                    {
+                        webBrowser.GetType().InvokeMember("Silent", BindingFlags.Instance | BindingFlags.Public | BindingFlags.PutDispProperty, null, webBrowser, new object[] { silent });
+                    }
+                }
+            }
+
+        }
+
+        [ComImport, Guid("6D5140C1-7436-11CE-8034-00AA006009FA"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        public interface IOleServiceProvider
+        {
+            [PreserveSig]
+            int QueryService([In] ref Guid guidService, [In] ref Guid riid, [MarshalAs(UnmanagedType.IDispatch)] out object ppvObject);
+
+
         }
     }
 }
