@@ -8,6 +8,5 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <WebBrowser x:Name="WebBrowser" LoadCompleted="WebBrowser_LoadCompleted" Visibility="Hidden" Navigated="ViewerWebBrowserControlView_Navigated"/>
-
     </Grid>
 </Window>
