@@ -22,6 +22,7 @@ namespace WawsObserverWPF
     /// </summary>
     public partial class MainWindow : Window
     {
+        #region WinINet.DLL method definition stated here
         [DllImport("wininet.dll", SetLastError = true)]
         public static extern bool InternetGetCookieEx(
             string url,
@@ -37,6 +38,7 @@ namespace WawsObserverWPF
         /// </summary>
         /// <param name="uri">The URI.</param>
         /// <returns></returns>
+        #endregion
 
         public MainWindow()
         {
@@ -49,7 +51,7 @@ namespace WawsObserverWPF
             // Cookie Name: AppServiceAuthSession
 
         }
-        
+
         public static string GetUriCookieContainer(Uri uri)
         {
             // Get the bare string list of cookies
@@ -112,6 +114,7 @@ namespace WawsObserverWPF
                     if (cookieArray[x].Contains("AppServiceAuthSession"))
                     {
                         Console.WriteLine(cookieArray[x]);
+                        cookies.Add(uri, new Cookie(cookieArray[x].Split('=')[0].Trim(), cookieArray[x].Split('=')[1].Trim()));
                         authCookie = cookieArray[x];
                     }
                 }
@@ -123,7 +126,9 @@ namespace WawsObserverWPF
 
             return authCookie;
         }
-        
+
+        // When page is loaded execute GetUriCookieContainer with the WawsObserver
+        // URL to get the AppServiceAuthSession Cookie Value
         private void WebBrowser_LoadCompleted(object sender, NavigationEventArgs e)
         {
             // Get the Authentication Cookie Value for later use
