@@ -154,13 +154,9 @@ namespace WawsObserverWPF
                 new Uri("https://wawsobserver.azurewebsites.windows.net/")
                 );
         }
-
-<<<<<<< HEAD
+		
         // The code below this comment is for removing the script error
         // message that was previously showing up for the WebOc
-
-=======
->>>>>>> c2bd079 (Removed the Script Errors from disrupting the Users Experience)
         void ViewerWebBrowserControlView_Navigated(object sender, NavigationEventArgs e)
         {
             BrowserHandler.SetSilent(WebBrowser, true); // make it silent
