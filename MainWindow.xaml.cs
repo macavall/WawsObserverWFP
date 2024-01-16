@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -153,8 +156,15 @@ namespace WawsObserverWPF
             string authCookie = GetUriCookieContainer(
                 new Uri("https://wawsobserver.azurewebsites.windows.net/")
                 );
+
+            AuthClass.AuthCookie = authCookie;
         }
-		
+
+        public static class AuthClass
+        {
+            public static string AuthCookie { get; set; }
+        }
+
         // The code below this comment is for removing the script error
         // message that was previously showing up for the WebOc
         void ViewerWebBrowserControlView_Navigated(object sender, NavigationEventArgs e)
@@ -197,6 +207,100 @@ namespace WawsObserverWPF
             int QueryService([In] ref Guid guidService, [In] ref Guid riid, [MarshalAs(UnmanagedType.IDispatch)] out object ppvObject);
 
 
+        }
+
+        private async void Button_Click(object sender, RoutedEventArgs e)
+        {
+            string appName = "caseintake"; // Replace with your app name
+            string linux = "";
+            string numOfSites = "";
+            string slotCount = "";
+            string workerCount = "";
+            string customContainer = "";
+            string num32 = "";
+            string name = "";
+            string alwaysOn = "";
+            string affinity = "";
+            string stampName = "";
+            string asp = "";
+            string clr = "";
+            string created = "";
+            string sku = "";
+            string auth = "";
+            string kind = "";
+            string vNet = "";
+            string region = "";
+
+            string extractedValue = String.Empty;
+
+            string triggers = "";
+            int triggerCount = 0;
+
+            Console.WriteLine(appName);
+
+            string uriString = $"https://wawsobserver.azurewebsites.windows.net/api/sites/{TextBox1.Text}";
+
+            int index = AuthClass.AuthCookie.IndexOf('='); // Find the index of '='
+            if (index != -1)
+            {
+                extractedValue = AuthClass.AuthCookie.Substring(index + 1); // Get the substring after '='
+                Console.WriteLine(extractedValue); // Output: 123456789
+            }
+
+            Uri uri = new Uri(uriString);
+
+            string contentType = "application/json";
+            string method = "GET";
+
+            var cookie = new Cookie("AppServiceAuthSession", extractedValue);
+            cookie.Domain = uri.DnsSafeHost;
+
+            var cookieContainer = new CookieContainer();
+            cookieContainer.Add(cookie);
+
+            var handler = new HttpClientHandler()
+            {
+                CookieContainer = cookieContainer
+            };
+
+            var client = new HttpClient(handler);
+
+            var headers = new Dictionary<string, string>
+           {
+               {"Referer", $"https://wawsobserver.azurewebsites.windows.net/sites/{appName}"}
+           };
+
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
+
+            HttpResponseMessage response = await client.GetAsync(uri);
+            dynamic result = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
+
+            linux = ((dynamic)((dynamic)result)[0].server_farm).is_linux.Value.ToString();
+            sku = ((dynamic)((dynamic)result)[0].sku).Value.ToString();
+
+            if (!sku.ToLower().Contains("dynamic"))
+            {
+                numOfSites = ((dynamic)((dynamic)result)[0].web_workers)[0].site_count.Value.ToString();
+            }
+
+            slotCount = ((dynamic)((dynamic)result)[0].slots).Count.ToString();
+            workerCount = ((dynamic)((dynamic)result)[0].web_workers).Count.ToString();
+            customContainer = ((dynamic)((dynamic)result)[0].linux_fx_version).Value.ToString();
+            num32 = ((dynamic)((dynamic)result)[0].options).Value.ToString();
+            name = ((dynamic)((dynamic)result)[0].name).Value.ToString();
+            alwaysOn = ((dynamic)((dynamic)result)[0].always_on).Value.ToString();
+            affinity = ((dynamic)((dynamic)result)[0].client_affinity_enabled).Value.ToString();
+            stampName = ((dynamic)((dynamic)result)[0].webspace).stamp.name.Value.ToString();
+            asp = ((dynamic)((dynamic)result)[0].virtual_farm_name).Value.ToString();
+            clr = ((dynamic)((dynamic)result)[0].clr_version).Value.ToString();
+            created = ((dynamic)((dynamic)result)[0]).created.Value.ToString();
+            
+            auth = ((dynamic)((dynamic)result)[0].site_auth_enabled).Value.ToString();
+            kind = ((dynamic)((dynamic)result)[0].kind).Value.ToString();
+            vNet = ((dynamic)((dynamic)result)[0].vnet_name).Value.ToString();
+            region = ((dynamic)((dynamic)result)[0].webspace).name.Value.ToString();
+
+            //await Console.Out.WriteLineAsync(result);
         }
     }
 }
