@@ -8,8 +8,10 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <WebBrowser x:Name="WebBrowser" LoadCompleted="WebBrowser_LoadCompleted" Visibility="Hidden" Navigated="ViewerWebBrowserControlView_Navigated"/>
-        <Button x:Name="Button1" Content="Button" HorizontalAlignment="Left" Height="35" Margin="549,10,0,0" VerticalAlignment="Top" Width="123" Click="Button_Click"/>
-        <TextBox x:Name="TextBox1" HorizontalAlignment="Left" Height="41" Margin="549,50,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="174" Background="White"/>
-        <Label x:Name="SiteName_" Content="Label" HorizontalAlignment="Left" Margin="492,53,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="Button1" Content="Get Site Information" HorizontalAlignment="Left" Height="35" Margin="549,10,0,0" VerticalAlignment="Top" Width="123" Click="Button_Click"/>
+        <TextBox x:Name="TextBox1" HorizontalAlignment="Left" Height="16" Margin="549,63,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="174" Background="White"/>
+        <Label x:Name="SiteName_" Content="SiteName" HorizontalAlignment="Left" Margin="483,58,0,0" VerticalAlignment="Top" RenderTransformOrigin="-1.279,0.5"/>
+        <TextBox x:Name="TextBoxValue1" HorizontalAlignment="Left" Height="195" Margin="140,178,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="625" Visibility="Hidden"/>
+        <Button x:Name="AuthButton" Content="Show Auth Cookie" HorizontalAlignment="Left" Margin="26,378,0,0" VerticalAlignment="Top" Height="27" Width="150" Click="Button_Click_1"/>
     </Grid>
 </Window>

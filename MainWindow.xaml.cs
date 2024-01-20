@@ -26,6 +26,7 @@ namespace WawsObserverWPF
     /// </summary>
     public partial class MainWindow : Window
     {
+
         #region WinINet.DLL method definition stated here
         [DllImport("wininet.dll", SetLastError = true)]
         public static extern bool InternetGetCookieEx(
@@ -158,6 +159,8 @@ namespace WawsObserverWPF
                 );
 
             AuthClass.AuthCookie = authCookie;
+
+            TextBoxValue1.Text = authCookie;
         }
 
         public static class AuthClass
@@ -301,6 +304,20 @@ namespace WawsObserverWPF
             region = ((dynamic)((dynamic)result)[0].webspace).name.Value.ToString();
 
             //await Console.Out.WriteLineAsync(result);
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (TextBoxValue1.Visibility == Visibility.Visible)
+            {
+                TextBoxValue1.Visibility = Visibility.Hidden;
+                AuthButton.Content = "Show Auth Cookie";
+            }
+            else
+            {
+                TextBoxValue1.Visibility = Visibility.Visible;
+                AuthButton.Content = "Hide Auth Cookie";
+            }
         }
     }
 }
