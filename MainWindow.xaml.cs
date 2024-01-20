@@ -52,11 +52,25 @@ namespace WawsObserverWPF
             // Navigate to the WawsObserver site
             WebBrowser.Navigate("https://wawsobserver.azurewebsites.windows.net/");
 
+            //Task.Factory.StartNew(async () =>
+            //{
+            //    await BrowserNavigate();
+            //});
+
             WebBrowser.Navigated += ViewerWebBrowserControlView_Navigated;
 
             // Attain the Authentication Cookie Name and Value
             // Cookie Name: AppServiceAuthSession
 
+        }
+
+        public async Task BrowserNavigate()
+        {
+            var loadTask = Task.Factory.StartNew(() =>
+            {
+                WebBrowser.Navigate("https://wawsobserver.azurewebsites.windows.net/");
+            });
+            await loadTask;
         }
 
         public static string GetUriCookieContainer(Uri uri)
@@ -136,8 +150,10 @@ namespace WawsObserverWPF
 
         // When page is loaded execute GetUriCookieContainer with the WawsObserver
         // URL to get the AppServiceAuthSession Cookie Value
-        private void WebBrowser_LoadCompleted(object sender, NavigationEventArgs e)
+        private async void WebBrowser_LoadCompleted(object sender, NavigationEventArgs e)
         {
+            await Task.Delay(1);
+
             var browser = sender as WebBrowser;
 
             if (browser == null || browser.Document == null)
@@ -160,7 +176,13 @@ namespace WawsObserverWPF
 
             AuthClass.AuthCookie = authCookie;
 
-            TextBoxValue1.Text = authCookie;
+            await this.Dispatcher.InvokeAsync(() =>
+            {
+                // Update UI elements here
+                TextBoxValue1.Text = authCookie;
+            });
+
+            //TextBoxValue1.Text = authCookie;
         }
 
         public static class AuthClass
@@ -212,7 +234,7 @@ namespace WawsObserverWPF
 
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private async Task ProcessDataAsync()
         {
             string appName = "caseintake"; // Replace with your app name
             string linux = "";
@@ -398,7 +420,7 @@ namespace WawsObserverWPF
                     Console.WriteLine(ex.Message);
                 }
 
-                
+
             }
 
             TextBoxResult.Text = tempString;
@@ -406,7 +428,12 @@ namespace WawsObserverWPF
             //await Console.Out.WriteLineAsync(result);
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private async void Button_Click(object sender, RoutedEventArgs e)
+        {
+            await ProcessDataAsync();
+        }
+
+        private async void Button_Click_1(object sender, RoutedEventArgs e)
         {
             if (TextBoxValue1.Visibility == Visibility.Visible)
             {
