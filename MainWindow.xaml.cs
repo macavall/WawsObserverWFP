@@ -278,30 +278,129 @@ namespace WawsObserverWPF
             HttpResponseMessage response = await client.GetAsync(uri);
             dynamic result = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
 
-            linux = ((dynamic)((dynamic)result)[0].server_farm).is_linux.Value.ToString();
-            sku = ((dynamic)((dynamic)result)[0].sku).Value.ToString();
+            var azureResourceResult = new AzureResource();
+            var fieldValueList = new List<string>();
+            var fieldList = new List<string>()
+            {
+                "Linux",
+                "NumOfSites",
+                "SlotCount",
+                "WorkerCount",
+                "CustomContainer",
+                "Num32",
+                "Name",
+                "AlwaysOn",
+                "Affinity",
+                "StampName",
+                "Asp",
+                "Clr",
+                "Created",
+                "Sku",
+                "Auth",
+                "Kind",
+                "VNet",
+                "Region"
+            };
+
+            // Needed for if statements below
+            azureResourceResult.Sku = ((dynamic)((dynamic)result)[0].sku).Value.ToString();
+
+            azureResourceResult.Linux = ((dynamic)((dynamic)result)[0].server_farm).is_linux.Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].server_farm).is_linux.Value.ToString());
+
+            if (!azureResourceResult.Sku.ToLower().Contains("dynamic"))
+            {
+                azureResourceResult.NumOfSites = ((dynamic)((dynamic)result)[0].web_workers)[0].site_count.Value.ToString();
+                fieldValueList.Add(((dynamic)((dynamic)result)[0].web_workers)[0].site_count.Value.ToString());
+            }
+            else
+            {
+                azureResourceResult.NumOfSites = "Consumption Plan - Site N/A";
+            }
+
+
+            azureResourceResult.SlotCount = ((dynamic)((dynamic)result)[0].slots).Count.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].slots).Count.ToString());
+
 
             if (!sku.ToLower().Contains("dynamic"))
             {
-                numOfSites = ((dynamic)((dynamic)result)[0].web_workers)[0].site_count.Value.ToString();
+                azureResourceResult.WorkerCount = ((dynamic)((dynamic)result)[0].web_workers).Count.ToString();
+                fieldValueList.Add(((dynamic)((dynamic)result)[0].web_workers).Count.ToString());
+            }
+            else
+            {
+                azureResourceResult.WorkerCount = "Consumption Plan - Site N/A";
+                fieldValueList.Add("Consumption Plan - Site N/A");
             }
 
-            slotCount = ((dynamic)((dynamic)result)[0].slots).Count.ToString();
-            workerCount = ((dynamic)((dynamic)result)[0].web_workers).Count.ToString();
-            customContainer = ((dynamic)((dynamic)result)[0].linux_fx_version).Value.ToString();
-            num32 = ((dynamic)((dynamic)result)[0].options).Value.ToString();
-            name = ((dynamic)((dynamic)result)[0].name).Value.ToString();
-            alwaysOn = ((dynamic)((dynamic)result)[0].always_on).Value.ToString();
-            affinity = ((dynamic)((dynamic)result)[0].client_affinity_enabled).Value.ToString();
-            stampName = ((dynamic)((dynamic)result)[0].webspace).stamp.name.Value.ToString();
-            asp = ((dynamic)((dynamic)result)[0].virtual_farm_name).Value.ToString();
-            clr = ((dynamic)((dynamic)result)[0].clr_version).Value.ToString();
-            created = ((dynamic)((dynamic)result)[0]).created.Value.ToString();
-            
-            auth = ((dynamic)((dynamic)result)[0].site_auth_enabled).Value.ToString();
-            kind = ((dynamic)((dynamic)result)[0].kind).Value.ToString();
-            vNet = ((dynamic)((dynamic)result)[0].vnet_name).Value.ToString();
-            region = ((dynamic)((dynamic)result)[0].webspace).name.Value.ToString();
+            azureResourceResult.CustomContainer = ((dynamic)((dynamic)result)[0].linux_fx_version).Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].linux_fx_version).Value.ToString());
+
+            azureResourceResult.Num32 = ((dynamic)((dynamic)result)[0].options).Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].options).Value.ToString());
+
+            azureResourceResult.Name = ((dynamic)((dynamic)result)[0].name).Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].name).Value.ToString());
+
+            azureResourceResult.AlwaysOn = ((dynamic)((dynamic)result)[0].always_on).Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].always_on).Value.ToString());
+
+            azureResourceResult.Affinity = ((dynamic)((dynamic)result)[0].client_affinity_enabled).Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].client_affinity_enabled).Value.ToString());
+
+            azureResourceResult.StampName = ((dynamic)((dynamic)result)[0].webspace).stamp.name.Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].webspace).stamp.name.Value.ToString());
+
+            azureResourceResult.Asp = ((dynamic)((dynamic)result)[0].virtual_farm_name).Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].virtual_farm_name).Value.ToString());
+
+            azureResourceResult.Clr = ((dynamic)((dynamic)result)[0].clr_version).Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].clr_version).Value.ToString());
+
+            azureResourceResult.Created = ((dynamic)((dynamic)result)[0]).created.Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0]).created.Value.ToString());
+
+            // Moving SKU to above for if statement
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].sku).Value.ToString());
+
+            azureResourceResult.Auth = ((dynamic)((dynamic)result)[0].site_auth_enabled).Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].site_auth_enabled).Value.ToString());
+
+            azureResourceResult.Kind = ((dynamic)((dynamic)result)[0].kind).Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].kind).Value.ToString());
+
+            azureResourceResult.VNet = ((dynamic)((dynamic)result)[0].vnet_name).Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].vnet_name).Value.ToString());
+
+            azureResourceResult.Region = ((dynamic)((dynamic)result)[0].webspace).name.Value.ToString();
+            fieldValueList.Add(((dynamic)((dynamic)result)[0].webspace).name.Value.ToString());
+
+            //CreateDictionary(azureResourceResult);
+
+            string tempString = string.Empty;
+
+            TextBoxResult.Text = string.Empty;
+
+            for (int x = 0; x < fieldList.Count; x++)
+            {
+                // tempString = "test" with new line
+                try
+                {
+                    tempString += fieldList[x] + ": " + fieldValueList[x] + "\n";
+
+                    Console.WriteLine(fieldList[x] + ": " + fieldValueList[x]);
+                }
+                catch (Exception ex)
+                {
+                    tempString += fieldList[x] + ": " + "NO VALUE" + "\n";
+                    Console.WriteLine(ex.Message);
+                }
+
+                
+            }
+
+            TextBoxResult.Text = tempString;
 
             //await Console.Out.WriteLineAsync(result);
         }
@@ -319,5 +418,51 @@ namespace WawsObserverWPF
                 AuthButton.Content = "Hide Auth Cookie";
             }
         }
+
+        public class AzureResource
+        {
+            public string Linux { get; set; }
+            public string NumOfSites { get; set; }
+            public string SlotCount { get; set; }
+            public string WorkerCount { get; set; }
+            public string CustomContainer { get; set; }
+            public string Num32 { get; set; }
+            public string Name { get; set; }
+            public string AlwaysOn { get; set; }
+            public string Affinity { get; set; }
+            public string StampName { get; set; }
+            public string Asp { get; set; }
+            public string Clr { get; set; }
+            public string Created { get; set; }
+            public string Sku { get; set; }
+            public string Auth { get; set; }
+            public string Kind { get; set; }
+            public string VNet { get; set; }
+            public string Region { get; set; }
+        }
+
+        public void CreateDictionary(AzureResource azRes)
+        {
+            var dict = new Dictionary<string, object>();
+
+            Type type = azRes.GetType();
+
+            //var fields = type.GetFields();
+
+            foreach (FieldInfo field in type.GetFields())
+            {
+                // Get the field name and value
+                dict.Add(field.Name, field.GetValue(azRes));
+
+                // Print the field name and value
+                //Console.WriteLine($"Field Name: {fieldName}, Field Value: {fieldValue}");
+            }
+
+            foreach (KeyValuePair<string, object> kvp in dict)
+            {
+                Console.WriteLine($"Key = {kvp.Key}, Value = {kvp.Value}");
+            }
+        }
+
     }
 }
