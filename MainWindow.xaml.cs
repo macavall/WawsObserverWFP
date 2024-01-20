@@ -316,6 +316,7 @@ namespace WawsObserverWPF
             else
             {
                 azureResourceResult.NumOfSites = "Consumption Plan - Site N/A";
+                fieldValueList.Add("Consumption Plan - Site N/A");
             }
 
 
