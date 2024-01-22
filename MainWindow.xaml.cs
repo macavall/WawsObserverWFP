@@ -73,6 +73,81 @@ namespace WawsObserverWPF
             await loadTask;
         }
 
+        public static CookieContainer GetUriCookieContainerAsString(Uri uri)
+        {
+            // Get the bare string list of cookies
+            var authCookie = String.Empty;
+
+            string cookieString = String.Empty;
+            CookieContainer cookies = null;
+
+            // Determine the size of the cookie
+            int datasize = 8192 * 16;
+
+            StringBuilder cookieData = new StringBuilder(datasize);
+
+            if (!InternetGetCookieEx(uri.ToString(), null, cookieData, ref datasize, InternetCookieHttponly, IntPtr.Zero))
+            {
+                // 
+                if (datasize < 0)
+                {
+                    return null;
+                }
+
+                // Allocate stringbuilder large enough to hold the cookie
+                cookieData = new StringBuilder(datasize);
+
+                // Checking if the InternetGetCookieEx method is available for use
+                if (!InternetGetCookieEx(
+                        uri.ToString(),
+                        null, cookieData,
+                        ref datasize,
+                        InternetCookieHttponly,
+                        IntPtr.Zero))
+                {
+                    return null;
+                }
+            }
+
+            if (cookieData.Length > 0)
+            {
+                // Creating a cookie container
+                cookies = new CookieContainer();
+
+                // Values for cookies come in looking like this
+                // CookieName1=Value1; CookieName2=Value2; CookieName3=Value3
+                // We need to split this into individual cookies
+                // and add them to the CookieContainer
+                // We also need to make sure that the cookie name and value are separated by a = sign
+                // If there is no = sign, then we don't have a valid cookie
+                // and we should ignore it
+                // Also, if the cookie name is empty, we should ignore it
+                // as well
+                var cookieArray = cookieData.ToString().Split(';');
+
+                // Loop through each individual cookie
+                // and populate the authCookie variable
+                Console.WriteLine("\n========================");
+                Console.WriteLine("WinInet Cookies Found: ");
+
+                for (int x = 0; x < cookieArray.Length; x++)
+                {
+                    if (cookieArray[x].Contains("AppServiceAuthSession"))
+                    {
+                        Console.WriteLine(cookieArray[x]);
+                        cookies.Add(uri, new Cookie(cookieArray[x].Split('=')[0].Trim(), cookieArray[x].Split('=')[1].Trim()));
+                        authCookie = cookieArray[x];
+                    }
+                }
+
+                Console.WriteLine("========================\n");
+
+                cookies.SetCookies(uri, cookieData.ToString().Replace(';', ','));
+            }
+
+            return cookies;
+        }
+
         public static string GetUriCookieContainer(Uri uri)
         {
             // Get the bare string list of cookies
@@ -170,17 +245,17 @@ namespace WawsObserverWPF
             document.head.appendChild(script);
 
             // Get the Authentication Cookie Value for later use
-            string authCookie = GetUriCookieContainer(
+            CookieContainer authCookie = GetUriCookieContainerAsString(
                 new Uri("https://wawsobserver.azurewebsites.windows.net/")
                 );
 
-            AuthClass.AuthCookie = authCookie;
+            AuthClass.AuthCookieContainer = authCookie;
 
-            await this.Dispatcher.InvokeAsync(() =>
-            {
-                // Update UI elements here
-                TextBoxValue1.Text = authCookie;
-            });
+            //await this.Dispatcher.InvokeAsync(() =>
+            //{
+            //    // Update UI elements here
+            //    TextBoxValue1.Text = authCookie;
+            //});
 
             //TextBoxValue1.Text = authCookie;
         }
@@ -188,6 +263,7 @@ namespace WawsObserverWPF
         public static class AuthClass
         {
             public static string AuthCookie { get; set; }
+            public static CookieContainer AuthCookieContainer { get; set; }
         }
 
         // The code below this comment is for removing the script error
@@ -265,12 +341,12 @@ namespace WawsObserverWPF
 
             string uriString = $"https://wawsobserver.azurewebsites.windows.net/api/sites/{TextBox1.Text}";
 
-            int index = AuthClass.AuthCookie.IndexOf('='); // Find the index of '='
-            if (index != -1)
-            {
-                extractedValue = AuthClass.AuthCookie.Substring(index + 1); // Get the substring after '='
-                Console.WriteLine(extractedValue); // Output: 123456789
-            }
+            //int index = AuthClass.AuthCookie.IndexOf('='); // Find the index of '='
+            //if (index != -1)
+            //{
+            //    extractedValue = AuthClass.AuthCookie.Substring(index + 1); // Get the substring after '='
+            //    Console.WriteLine(extractedValue); // Output: 123456789
+            //}
 
             Uri uri = new Uri(uriString);
 
@@ -280,8 +356,8 @@ namespace WawsObserverWPF
             var cookie = new Cookie("AppServiceAuthSession", extractedValue);
             cookie.Domain = uri.DnsSafeHost;
 
-            var cookieContainer = new CookieContainer();
-            cookieContainer.Add(cookie);
+            var cookieContainer = AuthClass.AuthCookieContainer;
+            // cookieContainer.Add(cookie);
 
             var handler = new HttpClientHandler()
             {
