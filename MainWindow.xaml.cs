@@ -76,7 +76,7 @@ namespace WawsObserverWPF
         public static CookieContainer GetUriCookieContainerAsString(Uri uri)
         {
             // Get the bare string list of cookies
-            var authCookie = String.Empty;
+            var authCookie = new List<string>();
 
             string cookieString = String.Empty;
             CookieContainer cookies = null;
@@ -109,6 +109,8 @@ namespace WawsObserverWPF
                 }
             }
 
+            AuthClass.CookieData = cookieData.ToString();
+
             if (cookieData.Length > 0)
             {
                 // Creating a cookie container
@@ -132,12 +134,16 @@ namespace WawsObserverWPF
 
                 for (int x = 0; x < cookieArray.Length; x++)
                 {
-                    if (cookieArray[x].Contains("AppServiceAuthSession"))
-                    {
-                        Console.WriteLine(cookieArray[x]);
-                        cookies.Add(uri, new Cookie(cookieArray[x].Split('=')[0].Trim(), cookieArray[x].Split('=')[1].Trim()));
-                        authCookie = cookieArray[x];
-                    }
+                    //if (cookieArray[x].Contains("AppServiceAuthSession"))
+                    //{
+                    //    Console.WriteLine(cookieArray[x]);
+                    //    cookies.Add(uri, new Cookie(cookieArray[x].Split('=')[0].Trim(), cookieArray[x].Split('=')[1].Trim()));
+                    //    authCookie = cookieArray[x];
+                    //}
+
+                    Console.WriteLine(cookieArray[x]);
+                    cookies.Add(uri, new Cookie(cookieArray[x].Split('=')[0].Trim(), cookieArray[x].Split('=')[1].Trim()));
+                    authCookie.Add(cookieArray[x]);
                 }
 
                 Console.WriteLine("========================\n");
@@ -184,6 +190,8 @@ namespace WawsObserverWPF
                 }
             }
 
+            AuthClass.CookieData = cookieData.ToString();
+
             if (cookieData.Length > 0)
             {
                 // Creating a cookie container
@@ -205,15 +213,16 @@ namespace WawsObserverWPF
                 Console.WriteLine("\n========================");
                 Console.WriteLine("WinInet Cookies Found: ");
 
-                for (int x = 0; x < cookieArray.Length; x++)
-                {
-                    if (cookieArray[x].Contains("AppServiceAuthSession"))
-                    {
-                        Console.WriteLine(cookieArray[x]);
-                        cookies.Add(uri, new Cookie(cookieArray[x].Split('=')[0].Trim(), cookieArray[x].Split('=')[1].Trim()));
-                        authCookie = cookieArray[x];
-                    }
-                }
+                //for (int x = 0; x < cookieArray.Length; x++)
+                //{
+                //    if (cookieArray[x].Contains("AppServiceAuthSession"))
+                //    {
+                //        Console.WriteLine(cookieArray[x]);
+                //        cookies.Add(uri, new Cookie(cookieArray[x].Split('=')[0].Trim(), cookieArray[x].Split('=')[1].Trim()));
+                //        authCookie = cookieArray[x];
+                //        AuthClass.AuthCookieList.Add(cookieArray[x]);
+                //    }
+                //}
 
                 Console.WriteLine("========================\n");
 
@@ -263,6 +272,10 @@ namespace WawsObserverWPF
         public static class AuthClass
         {
             public static string AuthCookie { get; set; }
+
+            public static List<string> AuthCookieList { get; set; }
+            public static string CookieData { get; set; }
+
             public static CookieContainer AuthCookieContainer { get; set; }
         }
 
@@ -358,6 +371,20 @@ namespace WawsObserverWPF
 
             var cookieContainer = AuthClass.AuthCookieContainer;
             // cookieContainer.Add(cookie);
+
+            //foreach(var cook in AuthClass.AuthCookieList)
+            //{
+            //    cookieContainer.Add(uri, new Cookie(cook.Split('=')[0].Trim(), cook.Split('=')[1].Trim()));
+            //}
+            
+            var cookieArray = AuthClass.CookieData.ToString().Split(';');
+
+            for (int x = 0; x < cookieArray.Length; x++)
+            {
+                Console.WriteLine(cookieArray[x]);
+                //cookies.Add(uri, new Cookie(cookieArray[x].Split('=')[0].Trim(), cookieArray[x].Split('=')[1].Trim()));
+                cookieContainer.Add(uri, new Cookie(cookieArray[x].Split('=')[0].Trim(), cookieArray[x].Split('=')[1].Trim()));
+            }
 
             var handler = new HttpClientHandler()
             {
